@@ -40,9 +40,12 @@ public class Monitor {
         // Ensure the list is sorted in descending order for promotion priority
         ALL_SERVER_PORTS_DESC.sort(Collections.reverseOrder());
     }
+    public static void main(String[] args) {
+        Monitor.getInstance().start(args);
+    }
 
 
-    public  void main(String[] args) {
+    public  void start(String[] args) {
         final int TIMEOUT_MS = 5000;
 
         // Map key is now the Port Number
