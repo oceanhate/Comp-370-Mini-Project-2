@@ -6,16 +6,38 @@ import java.net.Socket;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
-public class  Client {
-    private static final String HOST = "localhost";
-    private static final int MONITOR_API_PORT = 9001; // Monitor's API port
-    private static final int RECONNECT_INTERVAL = 5000; // 5 seconds
+/**
+ * Client class implementing Singleton pattern.
+ * Ensures only one client instance manages connections to the primary server.
+ */
+public class Client {
+
+    // --- SINGLETON PATTERN ---
+    private static Client instance;
+    
+    private Client() {}
+
+    public static synchronized Client getInstance() {
+        if (instance == null) {
+            instance = new Client();
+        }
+        return instance;
+    }
+
+    // Java entry point — calls singleton instance
+    public static void main(String[] args) {
+        Client.getInstance().run(args);
+    }
+
+    private final String HOST = "localhost";
+    private final int MONITOR_API_PORT = 9001; // Monitor's API port
+    private final int RECONNECT_INTERVAL = 5000; // 5 seconds
 
     /**
      * Queries the Monitor for the port of the current Primary server.
      * @return The port number of the current Primary, or 0 if monitor/connection fails.
      */
-    private static int getPrimaryPortFromMonitor() {
+    private int getPrimaryPortFromMonitor() {
         System.out.println("Querying Monitor for current Primary...");
         try (Socket socket = new Socket(HOST, MONITOR_API_PORT);
              PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
@@ -41,7 +63,8 @@ public class  Client {
         }
     }
 
-    public static void main(String[] args) {
+    // Main client loop - renamed from main to run for singleton
+    public void run(String[] args) {
         Scanner consoleInput = new Scanner(System.in);
 
         while (true) {
@@ -82,7 +105,7 @@ public class  Client {
         consoleInput.close();
     }
 
-    private static void connectAndRun(Scanner consoleInput, int port) throws IOException {
+    private void connectAndRun(Scanner consoleInput, int port) throws IOException {
         try (Socket socket = new Socket(HOST, port);
              PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
              BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
