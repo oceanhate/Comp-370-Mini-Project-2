@@ -63,7 +63,7 @@ public class Client {
         }
     }
 
-    // Main client loop - renamed from main to run for singleton
+    // Main client loop - renamed from  king main to run for singleton
     public void run(String[] args) {
         Scanner consoleInput = new Scanner(System.in);
 
