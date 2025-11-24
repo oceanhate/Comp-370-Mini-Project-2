@@ -66,18 +66,45 @@ This project has been refactored to implement key design patterns for improved m
 - Single Responsibility: Monitor focuses on detection, observers handle reactions
 - Open-Closed Principle: Add observers without modifying Monitor
 
+### **3. Abstraction-Occurrence Pattern** ✅
+
+**Implementation:**
+
+- **ServerProcess (Abstraction)**: Abstract base class containing common server behavior
+  - Shared attributes: `serverPort`, `messageCount`, `isPrimary`, `running`
+  - Common methods: `process()`, `sendHeartbeats()`, `handleClient()`, `replicateStateToBackups()`
+  - Abstract hook: `onPromotedToPrimary()` for subclass customization
+- **ServerNode (Occurrence)**: Concrete server instances extending `ServerProcess`
+  - Each instance represents a specific server with unique port and role
+  - Adds role-specific behavior through `Role` enum (PRIMARY/BACKUP)
+  - Implements promotion behavior via `onPromotedToPrimary()` hook
+- **ClusterConfig.NodeInfo (Configuration Abstraction)**: Separates configuration from instances
+  - Holds port and role pairs as abstraction
+  - `NODES` array contains all server occurrence configurations
+
+**Benefits:**
+
+- Eliminates code duplication across Primary and Backup servers
+- Centralizes common server logic in one maintainable location
+- Easy to add new servers (just create new `ServerNode` instance)
+- Clear separation between what varies (port, role) and what stays the same (server behavior)
+- Simplified configuration management through `ClusterConfig`
+
 ### **Design Pattern Impact**
 
-| Metric                   | Before                | After              | Improvement      |
-| ------------------------ | --------------------- | ------------------ | ---------------- |
-| Monitor Instance Control | Multiple possible     | Single (Singleton) | ✅ Consistency   |
-| Client Instance Control  | Multiple possible     | Single (Singleton) | ✅ Consistency   |
-| Notification Coupling    | Tight (direct prints) | Loose (Observer)   | ✅ Extensibility |
-| Adding Event Handlers    | Modify Monitor        | Add new Observer   | ✅ Open-Closed   |
+| Metric                   | Before                          | After                          | Improvement        |
+| ------------------------ | ------------------------------- | ------------------------------ | ------------------ |
+| Monitor Instance Control | Multiple possible               | Single (Singleton)             | ✅ Consistency     |
+| Client Instance Control  | Multiple possible               | Single (Singleton)             | ✅ Consistency     |
+| Server Code Duplication  | Separate Primary/Backup classes | Single `ServerProcess` base    | ✅ DRY Principle   |
+| Notification Coupling    | Tight (direct prints)           | Loose (Observer)               | ✅ Extensibility   |
+| Adding Event Handlers    | Modify Monitor                  | Add new Observer               | ✅ Open-Closed     |
+| Adding New Servers       | Create new class                | New `ServerNode` instance      | ✅ Simplicity      |
+| Configuration Management | Hardcoded in multiple places    | Centralized in `ClusterConfig` | ✅ Maintainability |
 
 **Files Locations:**
 
-- Refactored code: `/SocketServer/src/` (Monitor.java, Client.java, Observer.java, LoggingObserver.java, AlertObserver.java)
+- Refactored code: `/SocketServer/src/` (Monitor.java, Client.java, Observer.java, LoggingObserver.java, AlertObserver.java, ServerProcess.java, ServerNode.java, ClusterConfig.java)
 - Original code (pre-refactoring): Root directory files for comparison
 
 ---
