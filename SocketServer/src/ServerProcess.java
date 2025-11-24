@@ -4,6 +4,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -148,26 +149,32 @@ public abstract class ServerProcess {
      * Called when this server is promoted to primary.
      */
     protected abstract void onPromotedToPrimary();
-    
+
     /**
      * Replicates current state to all backup servers.
      * Sends STATE_UPDATE message to all known backup ports.
      */
     private void replicateStateToBackups() {
-        // Known backup ports (all servers except this one)
-        int[] allPorts = {8090, 8089, 8088};
-        
+        // Get all server ports from the ClusterConfig abstraction
+        int[] allPorts = Arrays.stream(ClusterConfig.NODES)
+                .mapToInt(node -> node.port)
+                .toArray();
+
         for (int port : allPorts) {
             if (port != this.serverPort) { // Don't send to self
-                try (Socket backupSocket = new Socket("localhost", port);
+                try (Socket backupSocket = new Socket(ClusterConfig.HOST, port);
                      PrintWriter out = new PrintWriter(backupSocket.getOutputStream(), true)) {
+
                     out.println("STATE_UPDATE:" + messageCount);
+
                 } catch (IOException e) {
-                    // Backup might be down - this is fine, it will sync when promoted
+                    System.err.println("Failed to replicate state to backup on port "
+                            + port + ": " + e.getMessage());
                 }
             }
         }
     }
+
 
     /**
      * Stops the server process gracefully.

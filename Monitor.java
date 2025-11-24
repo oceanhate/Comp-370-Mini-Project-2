@@ -7,44 +7,23 @@ import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Monitor class implementing Singleton and Observer patterns.
- * Manages server health monitoring, failover, and notifies observers of system events.
- */
+
+//Implemented singleton to monitor class, added block at the start, and removed static from other functions.
 public class Monitor {
 
-    // --- SINGLETON PATTERN ---
     private static Monitor instance;
 
     private Monitor() {
     }
 
     public static synchronized Monitor getInstance() {
-        if (instance == null) {
-            instance = new Monitor();
-        }
-        return instance;
-    }
+        if (instance == null) instance = new Monitor();
 
-    // --- OBSERVER PATTERN ---
-    private final List<Observer> observers = new ArrayList<>();
+        return instance;}
 
-    public void addObserver(Observer observer) {
-        observers.add(observer);
-    }
-
-    public void removeObserver(Observer observer) {
-        observers.remove(observer);
-    }
-
-    private void notifyObservers(String event) {
-        for (Observer observer : observers) {
-            observer.update(event);
-        }
-    }
 
     // --- GLOBAL CONSTANTS ---
-    private static final int PRIMARY_PORT_DEFAULT = ClusterConfig.NODES[0].port;
+    private final int PRIMARY_PORT_DEFAULT = 8090;
     private final int HEARTBEAT_PORT = 9000;
     private final int CLIENT_API_PORT = 9001;
 
@@ -52,29 +31,21 @@ public class Monitor {
     private volatile int currentPrimaryPort = PRIMARY_PORT_DEFAULT;
 
     // List of all server ports, sorted descending (highest port first)
-    private static final List<Integer> ALL_SERVER_PORTS_DESC = new ArrayList<>();
+    private final List<Integer> ALL_SERVER_PORTS_DESC = new ArrayList<>(
+            // Explicitly define all known ports here
+            Arrays.asList(8090, 8089, 8088)
+    );
 
-    static {
-        // Build the list of all server ports from the ClusterConfig abstraction
-        for (ClusterConfig.NodeInfo node : ClusterConfig.NODES) {
-            ALL_SERVER_PORTS_DESC.add(node.port);
-        }
+    {
         // Ensure the list is sorted in descending order for promotion priority
         ALL_SERVER_PORTS_DESC.sort(Collections.reverseOrder());
     }
-
-
     public static void main(String[] args) {
-        Monitor monitor = Monitor.getInstance();
-        
-        // Register observers
-        monitor.addObserver(new LoggingObserver());
-        monitor.addObserver(new AlertObserver());
-        
-        monitor.start(args);
+        Monitor.getInstance().start(args);
     }
 
-    public void start(String[] args) {
+
+    public  void start(String[] args) {
         final int TIMEOUT_MS = 5000;
 
         // Map key is now the Port Number
@@ -136,7 +107,6 @@ public class Monitor {
 
                         if (!alive.contains(port)) {
                             alive.add(port);
-                            notifyObservers("SERVER_ALIVE:Port " + port + " is now alive");
                         }
 
                         // Output format requested: Heartbeat received from [port #] + timestamp
@@ -222,9 +192,7 @@ public class Monitor {
                             if (port == currentPrimaryPort) {
                                 primaryFailed = true;
                             }
-                            String deathMsg = "!!! Server on Port " + port + " is DEAD (no heartbeat for " + timeLapsed + "ms) !!!";
-                            System.err.println(deathMsg);
-                            notifyObservers("SERVER_DEATH:Port " + port + " DEAD");
+                            System.err.println("!!! Server on Port " + port + " is DEAD (no heartbeat for " + timeLapsed + "ms) !!!");
                         }
                         lastSeen.remove(port);
                     }
@@ -236,10 +204,8 @@ public class Monitor {
 
                     if (currentPrimaryPort <= 0) {
                         System.out.println("\n*** PRIMARY IS UNSET. INITIATING RE-PROMOTION ***");
-                        notifyObservers("FAILOVER_INITIATED:Primary is unset");
                     } else {
                         System.out.println("\n*** PRIMARY SERVER FAILED. INITIATING FAILOVER ***");
-                        notifyObservers("FAILOVER_INITIATED:Primary failed on port " + currentPrimaryPort);
                     }
 
                     int newPrimaryPort = 0;
@@ -263,7 +229,6 @@ public class Monitor {
 
                                 // Log the client notification (as requested)
                                 System.out.println("-> CLIENT NOTIFICATION: New Primary is Port " + currentPrimaryPort);
-                                notifyObservers("PROMOTION_SUCCESS:Port " + port + " promoted to PRIMARY");
 
                                 break;
 
@@ -279,7 +244,6 @@ public class Monitor {
                     if (newPrimaryPort == 0) {
                         System.err.println("-> FATAL: No available server could be promoted.");
                         currentPrimaryPort = 0; // Set to 0 to indicate no active primary
-                        notifyObservers("PROMOTION_FAILED:No available server to promote");
                     }
                 }
 

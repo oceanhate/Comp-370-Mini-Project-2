@@ -6,6 +6,7 @@
 
 ## Table of Contents
 
+- [Project 2: Design Pattern Refactoring](#project-2-design-pattern-refactoring)
 - [Project Overview](#project-overview)
 - [System Architecture](#system-architecture)
 - [Quick Start](#quick-start)
@@ -15,6 +16,69 @@
 - [Test Scenarios](#test-scenarios)
 - [Requirements](#requirements)
 - [Troubleshooting](#troubleshooting)
+
+---
+
+## Project 2: Design Pattern Refactoring
+
+This project has been refactored to implement key design patterns for improved maintainability, extensibility, and code quality:
+
+### **1. Singleton Pattern** ✅
+
+**Implementation:**
+
+- **Monitor Class**: Ensures only one Monitor instance exists system-wide
+  - Private constructor prevents direct instantiation
+  - `getInstance()` provides synchronized access to single instance
+  - Manages all heartbeat monitoring and failover logic centrally
+- **Client Class**: Single client instance manages all server connections
+  - Prevents multiple conflicting client instances
+  - Centralized connection management and primary server discovery
+
+**Benefits:**
+
+- Guaranteed single point of control for monitoring
+- Prevents resource conflicts and duplicate monitoring
+- Global access point without global variables
+
+### **2. Observer Pattern** ✅
+
+**Implementation:**
+
+- **Observer Interface**: Defines `update(String event)` contract
+- **Monitor (Subject)**: Maintains observer list and notifies on events
+- **Concrete Observers**:
+  - `LoggingObserver`: Logs all system events with `[LOG]` prefix
+  - `AlertObserver`: Filters and alerts on critical events (DEAD, FAILED, FAILOVER) with `[ALERT!]` prefix
+
+**Events Tracked:**
+
+- `SERVER_ALIVE`: Server comes online or recovers
+- `SERVER_DEATH`: Server failure detected
+- `FAILOVER_INITIATED`: Primary failure triggers failover
+- `PROMOTION_SUCCESS`: Backup promoted to primary
+- `PROMOTION_FAILED`: No available servers to promote
+
+**Benefits:**
+
+- Decoupled notification logic from core monitoring
+- Easy to add new observers (e.g., email alerts, metrics tracking, dashboard updates)
+- Single Responsibility: Monitor focuses on detection, observers handle reactions
+- Open-Closed Principle: Add observers without modifying Monitor
+
+### **Design Pattern Impact**
+
+| Metric                   | Before                | After              | Improvement      |
+| ------------------------ | --------------------- | ------------------ | ---------------- |
+| Monitor Instance Control | Multiple possible     | Single (Singleton) | ✅ Consistency   |
+| Client Instance Control  | Multiple possible     | Single (Singleton) | ✅ Consistency   |
+| Notification Coupling    | Tight (direct prints) | Loose (Observer)   | ✅ Extensibility |
+| Adding Event Handlers    | Modify Monitor        | Add new Observer   | ✅ Open-Closed   |
+
+**Files Locations:**
+
+- Refactored code: `/SocketServer/src/` (Monitor.java, Client.java, Observer.java, LoggingObserver.java, AlertObserver.java)
+- Original code (pre-refactoring): Root directory files for comparison
 
 ---
 

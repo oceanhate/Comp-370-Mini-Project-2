@@ -4,10 +4,6 @@ import java.util.Scanner;
  * The Main class is the entry point for the server application.
  */
 public class Main {
-    // Define static ports for clarity and easier management.
-    public static final int PRIMARY_PORT = 8090;
-    public static final int BACKUP_PORT = 8089;
-    public static final int BACKUP_PORT2 = 8088;
 
     /**
      * The main method creates and starts the primary and backup servers, each in its own thread.
@@ -15,10 +11,21 @@ public class Main {
      */
     public static void main(String[] args) {
         // --- 1. CONSTRUCTOR ALIGNMENT ---
-        // Pass the port number to the server constructor so the server knows its own port.
-        var primaryServer = new primary(PRIMARY_PORT);
-        var backupServer = new backup(BACKUP_PORT);
-        var backupServer2 = new backup2(BACKUP_PORT2);
+        var primaryServer = new ServerNode(
+                ClusterConfig.NODES[0].port,
+                ClusterConfig.NODES[0].role
+        );
+
+        var backupServer = new ServerNode(
+                ClusterConfig.NODES[1].port,
+                ClusterConfig.NODES[1].role
+        );
+
+        var backupServer2 = new ServerNode(
+                ClusterConfig.NODES[2].port,
+                ClusterConfig.NODES[2].role
+        );
+
 
         // Announce that the servers are about to start.
         System.out.println("Server processes starting...");
@@ -26,13 +33,13 @@ public class Main {
         // --- 2. PROCESS CALL ALIGNMENT ---
         // The process() method no longer needs the port argument, as it uses the port stored in the constructor.
         primaryServer.process();
-        System.out.println("Primary server started on port " + PRIMARY_PORT);
+        System.out.println("Primary server started on port " + ClusterConfig.NODES[0].port);
 
         backupServer.process();
-        System.out.println("Backup server started on port " + BACKUP_PORT);
+        System.out.println("Backup server started on port " + ClusterConfig.NODES[1].port);
 
         backupServer2.process();
-        System.out.println("Backup server 2 started on port " + BACKUP_PORT2);
+        System.out.println("Backup server 2 started on port " + ClusterConfig.NODES[2].port);
 
         try (Scanner scanner = new Scanner(System.in)) {
             while (true) {
@@ -68,9 +75,20 @@ public class Main {
                         try { Thread.sleep(100); } catch (InterruptedException ignored) {}
 
                         // Re-initialize with correct ports
-                        primaryServer = new primary(PRIMARY_PORT);
-                        backupServer = new backup(BACKUP_PORT);
-                        backupServer2 = new backup2(BACKUP_PORT2);
+                        // Re-initialize with correct ports from ClusterConfig
+                        primaryServer = new ServerNode(
+                                ClusterConfig.NODES[0].port,
+                                ClusterConfig.NODES[0].role
+                        );
+                        backupServer = new ServerNode(
+                                ClusterConfig.NODES[1].port,
+                                ClusterConfig.NODES[1].role
+                        );
+                        backupServer2 = new ServerNode(
+                                ClusterConfig.NODES[2].port,
+                                ClusterConfig.NODES[2].role
+                        );
+
 
                         // Call process() without arguments
                         primaryServer.process();

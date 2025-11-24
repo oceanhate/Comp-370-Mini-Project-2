@@ -92,18 +92,19 @@ sleep 1
 
 # Start Server 1 (Primary - port 8090) in separate process
 echo "Starting Server 1 (port 8090)..."
-open_terminal "SERVER 1 (8090)" "java -cp src primary 8090"
+open_terminal "SERVER 1 (8090)" "java -cp src ServerNode 8090 PRIMARY"
 sleep 1
 
 # Start Server 2 (Backup - port 8089) in separate process
 echo "Starting Server 2 (port 8089)..."
-open_terminal "SERVER 2 (8089)" "java -cp src backup 8089"
+open_terminal "SERVER 2 (8089)" "java -cp src ServerNode 8089 BACKUP"
 sleep 1
 
 # Start Server 3 (Backup - port 8088) in separate process
 echo "Starting Server 3 (port 8088)..."
-open_terminal "SERVER 3 (8088)" "java -cp src backup2 8088"
+open_terminal "SERVER 3 (8088)" "java -cp src ServerNode 8088 BACKUP"
 sleep 1
+
 
 # Start Client
 echo "Starting Client..."

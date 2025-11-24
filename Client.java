@@ -1,3 +1,4 @@
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -6,15 +7,9 @@ import java.net.Socket;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Client class implementing Singleton pattern.
- * Ensures only one client instance manages connections to the primary server.
- */
 public class Client {
 
-    // --- SINGLETON PATTERN ---
     private static Client instance;
-    
     private Client() {}
 
     public static synchronized Client getInstance() {
@@ -24,7 +19,7 @@ public class Client {
         return instance;
     }
 
-    // Java entry point — calls singleton instance
+    // Java entry point — calls your instance main
     public static void main(String[] args) {
         Client.getInstance().run(args);
     }
@@ -63,7 +58,7 @@ public class Client {
         }
     }
 
-    // Main client loop - renamed from  king main to run for singleton
+    // Prev main updated to run
     public void run(String[] args) {
         Scanner consoleInput = new Scanner(System.in);
 
