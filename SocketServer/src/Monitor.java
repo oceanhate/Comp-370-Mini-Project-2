@@ -44,7 +44,7 @@ public class Monitor {
     }
 
     // --- GLOBAL CONSTANTS ---
-    private final int PRIMARY_PORT_DEFAULT = 8090;
+    private static final int PRIMARY_PORT_DEFAULT = ClusterConfig.NODES[0].port;
     private final int HEARTBEAT_PORT = 9000;
     private final int CLIENT_API_PORT = 9001;
 
@@ -52,15 +52,17 @@ public class Monitor {
     private volatile int currentPrimaryPort = PRIMARY_PORT_DEFAULT;
 
     // List of all server ports, sorted descending (highest port first)
-    private final List<Integer> ALL_SERVER_PORTS_DESC = new ArrayList<>(
-            // Explicitly define all known ports here
-            Arrays.asList(8090, 8089, 8088)
-    );
+    private static final List<Integer> ALL_SERVER_PORTS_DESC = new ArrayList<>();
 
-    {
+    static {
+        // Build the list of all server ports from the ClusterConfig abstraction
+        for (ClusterConfig.NodeInfo node : ClusterConfig.NODES) {
+            ALL_SERVER_PORTS_DESC.add(node.port);
+        }
         // Ensure the list is sorted in descending order for promotion priority
         ALL_SERVER_PORTS_DESC.sort(Collections.reverseOrder());
     }
+
 
     public static void main(String[] args) {
         Monitor monitor = Monitor.getInstance();
